@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.longMeetMapper">
+
+	<!-- 매칭 신청 후 상태 변경 -->
+	<update id="update">
+		update tbl_meet
+		set meet_state='i',
+		meet_partner=#{meet_partner}
+		where meet_writer=#{meet_writer};
+	</update>
+	<!-- 페이징 처리 -->
+	<select id="longUserList" resultType="com.pjt.domain.kmh.MatchRegisterVO">
+		select * from
+		(select rownum rnum, a.* from
+		(select u.USER_PHOTO, m.meet_name, meet_c.category_name,
+		loc.loc_name, m.meet_writer
+		from tbl_user u,tbl_meet m, tbl_main_category main_c, tbl_meet_category
+		meet_c, tbl_loc loc
+		where m.meet_category = main_c.main_category_num
+		and m.meet_sub_category = meet_c.category_num
+		and m.meet_addr = loc.loc_num and m.meet_writer = u.USER_ID and
+		m.meet_category=2
+		order by meet_num desc) a)
+		where #{startRow} &lt;= rnum and rnum
+		&lt;=#{endRow}
+	</select>
+
+	<select id="creatUserInfo" resultType="com.pjt.domain.kmh.MatchUserDTO">
+		select
+		user_id,user_name,user_age,
+		user_photo,c.loc_name,g.gender_name,
+		r.religion_name
+		from tbl_user u, tbl_loc c, tbl_gender g, tbl_religion
+		r
+		where u.user_addr = c.loc_num and u.user_gender = g.gender_num and
+		u.user_religion= r.religion_num
+	</select>
+
+	<select id="detailInfo" resultType="com.pjt.domain.kmh.UserInfoDTO">
+		select user_id,user_name,user_age,
+		user_photo,c.loc_name,g.gender_name,
+		r.religion_name,m.meet_num
+		from tbl_user u, tbl_loc c, tbl_gender g,
+		tbl_religion r, tbl_meet m
+		where u.user_addr = c.loc_num and
+		u.user_gender = g.gender_num and
+		u.user_religion= r.religion_num and
+		m.meet_writer= u.user_id and m.meet_writer=#{user_id}
+	</select>
+
+	<select id="listCount" resultType="int">
+		select count(*)from tbl_meet
+		where tbl_meet.meet_state='w'
+	</select>
+
+
+</mapper>

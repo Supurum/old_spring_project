@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.shortmeetMapper">
+	
+	<select id="selectAll" resultType="com.pjt.domain.th.MeetDTO">
+		select u.user_id,u.user_photo,u.user_age,
+       			l.LOC_NAME,c.CATEGORY_NAME
+		from tbl_meet m, tbl_user u, tbl_loc l, tbl_meet_category c
+		where m.meet_writer = u.user_id and m.meet_addr = l.loc_num 
+		and m.meet_sub_category = c.CATEGORY_NUM and m.meet_state = 'w'
+		and t1.meet_category=1
+	</select>
+	<select id="select" resultType="com.pjt.domain.th.MeetDTO">
+		select u.user_id,u.user_photo,u.user_age,
+       			l.LOC_NAME,c.CATEGORY_NAME
+		from tbl_meet m, tbl_user u, tbl_loc l, tbl_meet_category c
+		where m.meet_writer = u.user_id and m.meet_addr = l.loc_num 
+		and m.meet_sub_category = c.CATEGORY_NUM and category_name = #{category_name}
+		and m.meet_state='w' and t1.meet_category=1
+	</select>
+	
+	<update id="ing">
+		update tbl_meet set
+		meet_partner = #{meet_partner},
+		meet_state='i'
+		where meet_writer=#{user_id}
+	</update>
+	<!--  완료 -->
+	<select id="listPage" resultType="com.pjt.domain.th.MeetDTO">
+		select u.user_id,u.user_photo,u.user_age,l.LOC_NAME,c.CATEGORY_NAME
+		from (select * from (select rownum rnum, a.* from(
+   	                       select * from tbl_meet where meet_category=1
+   	                       and meet_state = 'w' order by tbl_meet.MEET_NUM desc) a
+   	                     ) 
+  	                      where #{startRow} &lt;= rnum and rnum &lt;= #{endRow})
+ 	    t1, tbl_user u, tbl_loc l, tbl_meet_category c
+ 		where t1.meet_writer = u.user_id and t1.meet_addr = l.loc_num 
+		and t1.meet_sub_category = c.CATEGORY_NUM
+	</select>
+	<!--  완료 -->
+	<select id="listOne" resultType="com.pjt.domain.th.MeetDTO">
+		select * from (
+   		select rownum rnum, t1.* from(select u.user_id,u.user_photo,u.user_age,
+       									l.LOC_NAME,c.CATEGORY_NAME
+			from tbl_meet m, tbl_user u, tbl_loc l, tbl_meet_category c
+			where m.meet_writer = u.user_id and m.meet_addr = l.loc_num 
+			and m.meet_sub_category = c.CATEGORY_NUM and category_name = #{category_name}
+			and m.meet_state='w' and m.meet_category=1)
+		t1) where #{startRow} &lt;= rnum and rnum &lt;= #{endRow} 
+	</select>
+	<select id="listCount" resultType="int">
+		select count(*) from tbl_meet
+		where tbl_meet.meet_state='w' and tbl_meet.meet_category=1
+	</select>
+	<select id="listCountOne" resultType="int">
+		select count(*) from(select u.user_id,u.user_photo,u.user_age,
+       			l.LOC_NAME,c.CATEGORY_NAME
+		from tbl_meet m, tbl_user u, tbl_loc l, tbl_meet_category c
+		where m.meet_writer = u.user_id and m.meet_addr = l.loc_num 
+		and m.meet_sub_category = c.CATEGORY_NUM and category_name = #{category_name}
+		and m.meet_state='w' and m.meet_category=1)
+	</select>
+	<!--  페이지 서브카테고리 목록 뽑아오기 -->
+	<select id="sub_category" resultType="com.pjt.domain.th.Sub_Category_DTO">
+		select * from tbl_meet_category
+		where category_num not in (7, 8)
+	</select>
+</mapper>

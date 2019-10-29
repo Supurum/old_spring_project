@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.replyMapper">
+	
+	<select id="list" resultType="com.pjt.domain.tsh.ReplyVO">
+		select * from tbl_reply
+		order by re_rno desc
+	</select>
+	
+	<insert id="create">
+	 	insert into tbl_reply(re_rno, re_bno, re_replyer, re_text)
+		values (seq_reply.nextval, #{re_bno}, #{re_replyer}, #{re_text})
+	</insert>
+	
+	<update id="update">
+		update tbl_reply set re_text = #{re_text}
+		where re_rno = #{re_rno}
+	</update>
+	
+	<delete id="delete">
+		delete from tbl_reply
+		where re_rno = #{re_rno}
+	</delete>
+	
+	<select id="listPage" resultType="com.pjt.domain.tsh.ReplyVO">
+		select *from (select rownum rnum, a.* from(select * from tbl_reply where re_bno = #{re_bno}
+				order by re_rno desc) a)
+		where ${cri.startRow} &lt;= rnum and rnum &lt;= ${cri.endRow} 
+	</select>
+	
+	<select id="count" resultType="int">
+		select count(*) from tbl_reply
+		where re_bno = #{re_bno}
+	</select>
+	
+	<select id="getBno" resultType="int">
+		select re_bno from tbl_reply
+		where re_rno = #{re_rno}
+	</select>
+</mapper>

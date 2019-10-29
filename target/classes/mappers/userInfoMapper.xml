@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mappers.userInfoMapper">
+
+	<select id="selectWriter" resultType="com.pjt.domain.kth.UserInfoDTO">
+		select meet_num, meet_writer, user_name, user_age, user_photo, gender_name
+		  from tbl_meet m, tbl_user u, tbl_gender g
+		  where m.meet_writer = u.user_id
+		  and g.gender_num = u.user_gender 
+		  and meet_num = #{meet_num}
+	</select>
+	
+	<select id="selectPartner" resultType="com.pjt.domain.kth.UserInfoDTO">
+		select meet_num, meet_partner, user_name, user_age, user_gender, user_photo
+		  from tbl_meet m, tbl_user u
+		  where m.meet_partner = u.user_id
+		  and meet_num = #{meet_num}
+	</select>
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<!-- 김영수 작성 -->
+<mapper namespace="mappers.randommeetMapper">
+	<!-- 매칭해줄 분류 리스트 읽기 -->
+	<select id="readCategory" resultType="com.pjt.domain.ys.CategoryVO">
+		SELECT * FROM TBL_MEET_CATEGORY
+	</select>
+	<!-- 매칭시킬수 있는 만남 리스트 -->
+	<select id="getSelectMeetWriterList" resultType="com.pjt.domain.ys.MeetVO">
+		SELECT MEET_NUM, MEET_WRITER 
+		FROM 
+			(
+				SELECT M.*, U.USER_AGE 
+				FROM TBL_USER U , TBL_MEET M 
+				WHERE U.USER_ID = M.MEET_WRITER
+			)
+		WHERE MEET_SUB_CATEGORY = #{aim} AND 
+		(MEET_TARGET_GENDER = #{user_gender} OR MEET_TARGET_GENDER = 0) 
+		AND USER_AGE &lt; #{user_age} + 5 
+		AND USER_AGE &gt; #{user_age} - 5 
+		AND MEET_STATE = 'w'
+	</select>
+	<!-- 매칭 성사 -->
+	<update id="matchUpdate">
+		UPDATE TBL_MEET SET MEET_PARTNER = #{user_id},MEET_STATE = 'i' WHERE MEET_NUM = #{meet_num}
+	</update>
+	<!-- 유저정보 읽어오기 -->
+	<select id="readUserInfo" resultType="com.pjt.domain.ys.UserDTO">
+		SELECT USER_ID, USER_NAME, USER_GENDER, USER_AGE, USER_PHOTO FROM TBL_USER WHERE USER_ID = #{id}
+	</select>
+
+<!-- TRASH -->
+
+<!-- 	1.SELECT USER_AGE,USER_GENDER FROM TBL_USER WHERE USER_ID = (ID PARAM); -->
+<!-- 		 	2.SELECT * FROM  -->
+<!-- 		 	(SELECT M.*,U.* FROM TBL_USER U , TBL_MEET M WHERE U.USER_ID = M.WRITER) -->
+<!-- 		 	WHERE MEET_SUB_CATEGORY= (AIM PARAM) AND MEET_TARGET_GENDER= (1 QUERY.USER_GENDER) AND( USER_AGE<1.USER_AGE+5 AND USER_AGE>1.USER_AGE-5) -->
+<!-- 	<insert id="insertRandom"> -->
+<!-- 		INSERT INTO TBL_MEET( -->
+<!-- 		MEET_NUM,  -->
+<!-- 		MEET_CATEGORY,  -->
+<!-- 		MEET_SUB_CATEGORY,  -->
+<!-- 		MEET_ADDR,  -->
+<!-- 		MEET_WRITER,  -->
+<!-- 		MEET_TARGET_GENDER,  -->
+<!-- 		MEET_REGIST_DATE,   -->
+<!-- 		MEET_STATE -->
+<!-- 		) VALUES( -->
+<!-- 		SEQ_MEET_NUM.NEXTVAL, -->
+<!-- 		3, -->
+<!-- 		8, -->
+<!-- 		#{meet_addr}, -->
+<!-- 		#{meet_writer}, -->
+<!-- 		#{meet_target_gender}, -->
+<!-- 		SYSDATE, -->
+<!-- 		'w' -->
+<!-- 		) -->
+<!-- 	</insert> -->
+</mapper>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.messageMapper">
+	
+	
+	<select id="selectSendList" resultType="com.pjt.common.domain.MessageDTO">
+		select *
+			from (select rownum rnum, a.*
+				from(select m.msg_num, u.user_nickname, m.targetid, m.message, m.senddate, m.opendate
+					from tbl_message m, tbl_user u
+					where m.targetid = u.user_id	
+			   		and m.sender = #{user_id}
+					order by m.senddate desc) a)
+			  		where #{startRow} &lt;= rnum and rnum &lt;= #{endRow}
+	</select>
+	
+	<select id="selectTargetList" resultType="com.pjt.common.domain.MessageDTO">
+		select *
+			from (select rownum rnum, a.*
+				from(select m.msg_num, u.user_nickname, m.sender, m.message, m.senddate, m.opendate
+					from tbl_message m, tbl_user u
+					where m.sender = u.user_id	
+			   		and m.targetid = #{user_id}
+					order by m.senddate desc) a)
+			  		where #{startRow} &lt;= rnum and rnum &lt;= #{endRow}
+	</select>
+	
+	<select id="selectMessage" resultType="com.pjt.common.domain.MessageDTO">
+		select m.msg_num, u.user_nickname, m.sender, m.message, m.senddate
+		from tbl_message m, tbl_user u
+		where m.sender = u.user_id
+		and msg_num = #{msg_num}
+	</select>
+	
+	<delete id="deleteMessage">
+		delete from tbl_message
+		where msg_num = #{msg_num}
+	</delete>
+	
+	<insert id="insertMessage">
+		insert into tbl_message(msg_num, targetid, sender, message)
+   		values (seq_msg_num.nextval, #{targetid} , #{sender} , #{message})
+	</insert>
+	
+	<select id="countTargetPage" resultType="int">
+		select count(*) from tbl_message
+		where targetid = #{user_id}
+	</select>
+	
+	<select id="countSenderPage" resultType="int">
+		select count(*) from tbl_message
+		where sender = #{user_id}
+	</select>
+	
+	<update id="chkRead">
+		update tbl_message set
+		opendate = sysdate
+		where msg_num = #{msg_num}
+	</update>
+	
+	<select id="chkOpenDate" resultType="java.sql.Timestamp">
+		select opendate from TBL_MESSAGE
+   		where msg_num = #{msg_num}
+	</select>
+</mapper>

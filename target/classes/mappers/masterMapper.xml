@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<!-- 김영수 작성 -->
+<mapper namespace="mappers.masterMapper">
+	<!-- 만남 목록 -->
+	<select id="getMeetList" resultType="com.pjt.domain.ys.MasterMeetVO">
+		SELECT
+		M.MEET_NUM, 
+		MA.MAIN_CATEGORY_NAME, 
+		MC.CATEGORY_NAME, 
+		M.MEET_NAME, 
+		L.LOC_NAME, 
+		U.USER_NICKNAME, 
+		M.MEET_REGIST_DATE 
+		FROM TBL_MEET M, TBL_MAIN_CATEGORY MA, TBL_MEET_CATEGORY MC, TBL_LOC L, TBL_USER U 
+		WHERE 
+		M.MEET_CATEGORY = MA.MAIN_CATEGORY_NUM AND
+		M.MEET_SUB_CATEGORY = MC.CATEGORY_NUM AND
+		M.MEET_ADDR= L.LOC_NUM AND 
+		M.MEET_WRITER = U.USER_ID
+	</select>
+	<!-- 만남 권한 삭제 -->
+	<delete id="delMeet">
+		DELETE FROM TBL_MEET WHERE MEET_NUM = #{meet_num}
+	</delete>
+	<!-- 통계-서버의 날짜 읽기 -->
+	<select id="getDate" resultType="java.lang.String">
+		SELECT SUBSTR(TO_CHAR(SYSDATE-#{i}),0,8) todate FROM DUAL
+	</select>
+	<!-- 통계-오늘 로그인 수 -->
+	<select id="getTodayLogin" resultType="int">
+		SELECT COUNT(USER_ID) count
+		FROM TBL_LOG
+		WHERE SUBSTR(TO_CHAR(LOG_TIME),0,8) = SUBSTR(TO_CHAR(SYSDATE-#{i}),0,8)
+	</select>
+	<!-- 통계-오늘 로그인한 멤버 수 -->
+	<select id="getTodayLoginMember" resultType="int">
+		SELECT COUNT(DISTINCT(USER_ID)) count
+		FROM TBL_LOG
+		WHERE SUBSTR(TO_CHAR(LOG_TIME),0,8) = SUBSTR(TO_CHAR(SYSDATE-#{i}),0,8)
+	</select>
+	<!-- 통계-오늘 만들어진 만남 수 -->
+	<select id="getTodayCreate" resultType="int">
+		SELECT count(*)
+		FROM TBL_MEET
+		WHERE SUBSTR(TO_CHAR(MEET_REGIST_DATE),0,8) = SUBSTR(TO_CHAR(SYSDATE-#{i}),0,8)
+	</select>
+	<!-- 통계-성별별 회원수 -->
+	<select id="getGenderCount" resultType="int">
+		SELECT COUNT(*) 
+		FROM TBL_USER 
+		WHERE USER_GENDER = #{gender}
+	</select>
+	<select id="getMeetStatusCount" resultType="int">
+		SELECT COUNT(*) 
+		FROM TBL_MEET
+		WHERE MEET_STATE = #{c}
+	</select>
+</mapper>

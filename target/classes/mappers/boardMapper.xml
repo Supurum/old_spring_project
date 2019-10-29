@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.boardMapper">
+	
+	<insert id="create">
+		insert into tbl_board (tbl_bno, tbl_title, tbl_writer, tbl_content)
+		values(seq_board.nextval, #{tbl_title}, #{tbl_writer}, #{tbl_content})
+	</insert>
+	
+	<select id="read" resultType="com.pjt.domain.tsh.BoardVO">
+		select * from tbl_board
+		where tbl_bno = #{tbl_bno}
+	</select>
+	
+	<update id="update">
+		update tbl_board set
+			tbl_title = #{tbl_title}, tbl_content = #{tbl_content}
+		where tbl_bno = #{tbl_bno}
+	</update>
+	
+	<delete id="delete">
+		delete from tbl_board
+		where tbl_bno = #{tbl_bno}
+	</delete>
+	
+	<select id="listAll" resultType="com.pjt.domain.tsh.BoardVO">
+		select * from tbl_board
+		order by tbl_bno desc
+	</select>
+	
+	<select id="listPage" resultType="com.pjt.domain.tsh.BoardVO">
+		select * from (	select rownum rnum, a.* from   (select * from tbl_board order by tbl_bno desc) a)
+		where #{startRow} &lt;= rnum and rnum &lt;= #{endRow}
+	</select>
+	
+	<select id="listCriteria" resultType="com.pjt.domain.tsh.BoardVO">
+		select * from (	select rownum rnum, a.* from   (select * from tbl_board order by tbl_bno desc) a)
+		where #{startRow} &lt;= rnum and rnum &lt;= #{endRow} 
+	</select>
+	
+	<select id="countPaging" resultType="int">
+		select count(*) from tbl_board
+	</select>
+	
+	<select id="listSearchCount" resultType="int">
+		select count(*) from tbl_board
+		<include refid="search"/>
+	</select>
+	
+	<select id="listSearch" resultType="com.pjt.domain.tsh.BoardVO">
+		select * from (	select rownum rnum, a.* from
+			(select * from tbl_board<include refid="search"/> order by tbl_bno desc) a)
+		where #{startRow} &lt;= rnum and rnum &lt;= #{endRow} 
+	</select>
+	
+	<sql id="search">
+		<if test="searchType != null">
+			<where>
+				<choose>
+					<when test="searchType == 'tc'.toString()">
+						tbl_title like concat(concat('%', #{keyword}), '%')
+						or
+						tbl_content like concat(concat('%', #{keyword}), '%')
+					</when>
+					<when test="searchType == 't'.toString()">
+						tbl_title like concat(concat('%', #{keyword}), '%')
+					</when>
+					<when test="searchType == 'w'.toString()">
+						tbl_writer like concat(concat('%', #{keyword}), '%')
+					</when>
+				</choose>
+			</where>
+		</if>
+	</sql>
+	
+	<update id="viewCnt">
+		update tbl_board set tbl_viewcnt = tbl_viewcnt + 1
+		where tbl_bno = #{tbl_bno}
+	</update>
+	
+	<update id="updateReplyCnt">
+		update tbl_board set tbl_replycnt = tbl_replycnt + #{amount}
+		where tbl_bno = #{tbl_bno}
+	</update>
+	
+	<insert id="addAttach">
+		insert into tbl_attach(tbl_fullname, tbl_bno)
+		values (#{tbl_fullName}, seq_board.currval)
+	</insert>
+	
+	<select id="getAttach" resultType="String">
+		select tbl_fullname from tbl_attach
+		where tbl_bno = #{tbl_bno}
+		order by tbl_regdate
+	</select>
+	
+	<delete id="deleteAttach">
+		delete from tbl_attach
+		where tbl_bno = #{tbl_bno}
+	</delete>
+	
+	<insert id="replaceAttach">
+		insert into tbl_attach(tbl_fullname, tbl_bno)
+		values (#{tbl_fullName}, #{tbl_bno})
+	</insert>
+	
+</mapper>

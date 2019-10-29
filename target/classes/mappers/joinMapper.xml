@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mappers.joinMapper">
+	<select id="selectAll" resultType="com.pjt.common.domain.JoinDTO">
+	 	select 	m.meet_name, j.user_id, u.user_name, j.regist_date, u.USER_PHOTO, j.join_idx,m.meet_num
+        from 	TBL_MEET m, tbl_meet_join j, tbl_user u
+        where 	j.meet_num = m.meet_num
+        and 	j.user_id = u.user_id
+        and 	j.accept_yn = 'n'
+        and 	m.meet_writer = #{user_id}
+        order by j.join_idx asc 
+	</select>
+	
+	<insert id="insertJoin">
+		insert into tbl_meet_join (join_idx, meet_num, user_id)
+		values (seq_join_idx.nextval, #{meet_num}, #{user_id})
+	</insert>
+	
+	<update id="updateJoin">
+		update tbl_meet_join set
+			accept_yn = 'y'
+		where meet_num = #{meet_num}
+	</update>
+	
+	<select id="selectListByMeetNum" resultType="String">
+		select user_id from tbl_meet_join
+		where meet_num = #{meet_num}
+	</select>
+	
+	<delete id ="deleteRequest">
+	 delete from tbl_meet_join
+	 where join_idx= #{join_idx}
+	</delete>
+	
+	<update id="updatePeopleNum">
+		update tbl_meet set
+		meet_peoplenum = meet_peoplenum + 1
+			where meet_num = #{meet_num}
+	</update>
+	
+	<!-- 	수락 버튼 눌렀을때 상태 변경  -->
+	<update id="updatePartnerInfo">
+		update tbl_meet set
+			meet_state = 'i',
+			meet_partner = #{meet_partner}
+		where meet_num=#{meet_num}
+	</update>
+	
+	
+</mapper>	           

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<!-- 김영수 작성 -->
+<mapper namespace="mappers.userMapper">
+	<!-- 회원가입-ID중복확인 -->
+	<select id="checkID" resultType="int">
+		SELECT count(USER_ID) 
+		FROM TBL_USER 
+		WHERE USER_ID = #{user_id}
+	</select>
+	<!-- 회원가입-닉네임중복확인 -->
+	<select id="checkNick" resultType="int">
+		SELECT count(USER_NICKNAME) 
+		FROM TBL_USER 
+		WHERE USER_NICKNAME = #{name}
+	</select>
+	<!-- 회원가입 -->
+	<insert id="registUser">
+		INSERT INTO TBL_USER(USER_ID, USER_PW, USER_NAME, USER_GENDER, USER_AGE, USER_ADDR, USER_TEL, USER_RELIGION, USER_PHOTO, USER_NICKNAME, USER_POINT)
+		VALUES(#{user_id}, #{user_pw}, #{user_name}, #{user_gender}, #{user_age}, #{user_addr}, #{user_tel}, #{user_religion}, #{user_photo}, #{user_nickname}, (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = 'JOIN GIFT'))
+	</insert>
+	
+	<!-- 회원정보 수정-정보 얻기 -->
+	<select id="getUserInfo" resultType="com.pjt.domain.ys.UserVO">
+		SELECT USER_ADDR, USER_TEL, USER_PHOTO, USER_RELIGION, USER_NICKNAME 
+		FROM TBL_USER 
+		WHERE USER_ID = #{id} 
+	</select>
+	<!-- 회원정보 수정-이전 사진 파일 삭제 -->
+	<select id="getUserPhoto" resultType="java.lang.String">
+		SELECT USER_PHOTO 
+		FROM TBL_USER 
+		WHERE USER_ID = #{user_id}
+	</select>
+	<!-- 회원정보 수정-회원정보수정 -->
+	<update id="updateUserInfo">
+		UPDATE TBL_USER
+		SET 
+		USER_PW = #{user_pw},
+		USER_ADDR = #{user_addr}, 
+		USER_TEL = #{user_tel}, 
+		<include refid="photo"></include>
+		USER_RELIGION = #{user_religion},
+		USER_NICKNAME = #{user_nickname}
+		WHERE USER_ID = #{user_id}
+	</update>	
+	
+	<!-- 회원검색-검색된 리스트 -->
+	<select id="getSearchUserList" resultType="com.pjt.domain.ys.UserSearchDTO">
+		SELECT * 
+		FROM
+			(SELECT ROWNUM RNUM, U.USER_ID, U.USER_NAME, G.GENDER_NAME, U.USER_AGE, L.LOC_NAME, U.USER_PHOTO, R.RELIGION_NAME
+			FROM TBL_USER U, TBL_GENDER G, TBL_LOC L, TBL_RELIGION R 
+			WHERE U.USER_GENDER = G.GENDER_NUM 
+			AND U.USER_ADDR = L.LOC_NUM 
+			AND U.USER_RELIGION = R.RELIGION_NUM
+			<include refid="searchType"></include>
+			<include refid="genderLimit"></include>
+			)
+			WHERE RNUM &gt;= #{startRow} AND RNUM &lt;= #{endRow}
+			order by USER_ID
+	</select>
+	<!-- 회원검색-검색된 회원 수 -->
+	<select id="listSearchCount" resultType="int">
+		SELECT COUNT(*) 
+		FROM TBL_USER
+		<include refid="wgenderLimit"></include>
+		<include refid="searchType"></include>		
+	</select>
+	
+	<!-- SUB SQL -->
+	<sql id="photo">
+		<if test="user_photo != null">
+			USER_PHOTO = #{user_photo}, 
+		</if>
+	</sql>
+	<sql id="searchType">
+		<if test="aint != 0"><!-- age -->
+			AND USER_AGE &gt;= #{aint}*10 
+			AND USER_AGE &lt;= #{aint}*10+9 
+		</if>
+		<if test="lint != 0"><!-- loc -->
+			AND USER_ADDR = #{lint}
+		</if>
+		<if test="rint != 0"><!-- religion -->
+			AND USER_RELIGION = #{rint}
+		</if>
+	</sql>
+	<sql id="genderLimit">
+		<if test="user_gender != 0">
+			AND USER_GENDER = #{user_gender}
+		</if>
+	</sql>
+	<sql id="wgenderLimit">
+		<if test="user_gender != 0">
+			WHERE USER_GENDER = #{user_gender}
+		</if>
+	</sql>
+
+	
+<!-- TRASH -->
+
+<!-- 나중에 커먼으로 옮겨야함  -->
+<!-- 	<select id="getGenderList" resultType="com.pjt.domain.ys.GenderVO"> -->
+<!-- 		SELECT * FROM TBL_GENDER -->
+<!-- 	</select> -->
+<!-- 	<select id="getLocList" resultType="com.pjt.domain.ys.LocVO"> -->
+<!-- 		SELECT * FROM TBL_LOC -->
+<!-- 	</select> -->
+<!-- 	<select id="getReligionList" resultType="com.pjt.domain.ys.ReligionVO"> -->
+<!-- 		SELECT * FROM TBL_RELIGION -->
+<!-- 	</select> -->
+<!-- 	<select id="checkLoginToday" resultType="int"> -->
+<!-- 		SELECT count(LOG_TIME)  -->
+<!-- 		FROM TBL_LOG  -->
+<!-- 		WHERE USER_ID = #{user_id} AND SUBSTR(TO_CHAR(LOG_TIME),0,8) = SUBSTR(TO_CHAR(SYSDATE),0,8) -->
+<!-- 	</select> -->
+<!-- 	<update id="updatePoint"> -->
+<!-- 		UPDATE TBL_USER -->
+<!-- 		SET  -->
+<!-- 		USER_POINT =USER_POINT + (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation}) -->
+<!-- 		WHERE USER_ID =#{user_id} -->
+<!-- 		AND 0 &lt;=(USER_POINT + (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation})) -->
+<!-- 	</update> -->
+<!-- 	<insert id="writePointTBook"> -->
+<!-- 		INSERT INTO TBL_POINTTBOOK(POINTLOG_NUM, USER_ID, POINTLOG_TIME, POINTLOG_VARIATION, POINTLOG_CONTENT)  -->
+<!-- 		VALUES(SEQ_POINTLOG_NUM.NEXTVAL,#{user_id},sysdate,(SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation}),#{pointlog_content}) -->
+<!-- 	</insert> -->
+<!-- 	<select id="login" resultType="String"> -->
+<!-- 		SELECT USER_ID  -->
+<!-- 		FROM TBL_USER  -->
+<!-- 		WHERE USER_ID = #{user_id} AND USER_PW = #{user_pw} -->
+<!-- 	</select> -->
+<!-- 	<insert id="writeLog"> -->
+<!-- 		INSERT INTO TBL_LOG(LOG_NUM, USER_ID, LOG_TIME, LOG_CONTENT)  -->
+<!-- 		VALUES(SEQ_LOG_NUM.NEXTVAL,#{user_id},SYSDATE,#{log_content}) -->
+<!-- 	</insert> -->
+<!-- 	<select id="checkLoginToday" resultType="int"> -->
+<!-- 		SELECT count(LOG_TIME)  -->
+<!-- 		FROM TBL_LOG  -->
+<!-- 		WHERE USER_ID = #{user_id} AND SUBSTR(TO_CHAR(LOG_TIME),0,8) = SUBSTR(TO_CHAR(SYSDATE),0,8) -->
+<!-- 	</select> -->
+<!-- 	<update id="updatePoint"> -->
+<!-- 		UPDATE TBL_USER -->
+<!-- 		SET  -->
+<!-- 		USER_POINT =USER_POINT + (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation}) -->
+<!-- 		WHERE USER_ID =#{user_id} -->
+<!-- 		AND 0 &lt;=(USER_POINT + (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation})) -->
+<!-- 	</update> -->
+<!-- 	<insert id="writePointTBook"> -->
+<!-- 		INSERT INTO TBL_POINTTBOOK(POINTLOG_NUM, USER_ID, POINTLOG_TIME, POINTLOG_VARIATION, POINTLOG_CONTENT)  -->
+<!-- 		VALUES(SEQ_POINTLOG_NUM.NEXTVAL,#{user_id},sysdate,(SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation}),#{pointlog_content}) -->
+<!-- 	</insert> -->
+<!-- 	<select id="login" resultType="String"> -->
+<!-- 		SELECT USER_ID  -->
+<!-- 		FROM TBL_USER  -->
+<!-- 		WHERE USER_ID = #{user_id} AND USER_PW = #{user_pw} -->
+<!-- 	</select> -->
+<!-- 	<insert id="writeLog"> -->
+<!-- 		INSERT INTO TBL_LOG(LOG_NUM, USER_ID, LOG_TIME, LOG_CONTENT)  -->
+<!-- 		VALUES(SEQ_LOG_NUM.NEXTVAL,#{user_id},SYSDATE,#{log_content}) -->
+<!-- 	</insert> -->
+<!-- 여기까지 -->
+
+<!-- 		<sql id="searchType"> -->
+<!-- 		<if test="searchChar != null and searchChar != '0'.toString()"> -->
+<!-- 			<choose> -->
+<!-- 				<when test="searchChar == 'a'.toString()">age -->
+<!-- 				<if test="aint != 0">age -->
+<!-- 					AND USER_AGE &gt;= #{aint}*10 AND USER_AGE &lt;= #{aint}*10+9  -->
+<!-- 				</if> -->
+<!-- 				<when test="searchChar == 'l'.toString()">loc -->
+<!-- 				<if test="lint != 0">loc -->
+<!-- 					AND USER_ADDR = #{lint} -->
+<!-- 				</if> -->
+<!-- 				<when test="searchChar == 'r'.toString()">religion -->
+<!-- 				<if test="rint != 0">religion -->
+<!-- 					AND USER_RELIGION = #{rint} -->
+<!-- 				</if> -->
+<!-- 			</choose> -->
+<!-- 		</if> -->
+<!-- 	</sql> -->
+<!-- 	<select id="getUserLoc" resultType="int"> -->
+<!-- 		SELECT USER_ADDR  -->
+<!-- 		FROM TBL_USER  -->
+<!-- 		WHERE USER_ID = #{user_id} -->
+<!-- 	</select> -->
+
+</mapper>

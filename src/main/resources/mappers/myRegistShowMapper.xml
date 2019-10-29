@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mappers.myRegistShowMapper">
+	<select id="myRegistShow" resultType="com.pjt.common.domain.MyRegistShowDTO">
+		select m.meet_name,
+		m.meet_writer, m.meet_regist_date,
+		main_c.main_category_name,m.meet_partner,meet_c.CATEGORY_NAME,
+		state_name, loc_name, user_photo
+		from TBL_MEET m, TBL_STATE_CATEGORY c,
+		tbl_loc l, tbl_user u,TBL_MAIN_CATEGORY main_c,tbl_meet_category
+		meet_c
+		where m.MEET_STATE = c.STATE_NUM
+		and m.MEET_CATEGORY =
+		main_c.MAIN_CATEGORY_NUM
+		and m.meet_addr = l.loc_num
+		and
+		m.meet_sub_category = meet_c.CATEGORY_NUM
+		and m.meet_writer = u.user_id
+		and meet_writer=#{user_id}
+		order by meet_num
+		desc
+	</select>
+
+
+	<update id="completeMatching">
+		update tbl_meet set
+		meet_state = 'c'
+		where meet_writer
+		= #{user_id} and meet_state = 'i'
+	</update>
+
+	<!-- 수락 버튼 눌렀을때 상태 변경 -->
+	<update id="updatePartnerInfo">
+		update tbl_meet
+		set meet_state='i',
+		meet_partner=#{meet_partner}
+		where meet_num=#{meet_num}
+	</update>
+
+	<select id="myRequestingShow" resultType="com.pjt.common.domain.MyRequestingInfoDTO">
+		select j.meet_num, m.meet_writer, g.GENDER_NAME, j.REGIST_DATE, j.ACCEPT_YN
+		from tbl_user u, tbl_gender g, tbl_meet_join j, tbl_meet m
+		where m.meet_num = j.meet_num
+		and u.user_id = m.meet_writer
+		and u.user_gender = g.gender_num
+		and j.user_id = #{user_id}
+
+	</select>
+
+
+
+</mapper>	           

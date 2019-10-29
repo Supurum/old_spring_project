@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<!-- 김영수 작성 -->
+<mapper namespace="mappers.commonMapper">
+	<!-- 로그인 -->
+	<select id="login" resultType="String">
+		SELECT USER_ID 
+		FROM TBL_USER 
+		WHERE USER_ID = #{user_id} AND USER_PW = #{user_pw}
+	</select>
+	<!-- 로그인-기록 -->
+	<insert id="writeLog">
+		INSERT INTO TBL_LOG(LOG_NUM, USER_ID, LOG_TIME, LOG_CONTENT) 
+		VALUES(SEQ_LOG_NUM.NEXTVAL,#{user_id},SYSDATE,#{log_content})
+	</insert>
+	<!-- 로그인-금일 로그인 여부 확인 -->
+	<select id="checkLoginToday" resultType="int">
+		SELECT count(LOG_TIME) 
+		FROM TBL_LOG 
+		WHERE USER_ID = #{user_id} AND SUBSTR(TO_CHAR(LOG_TIME),0,8) = SUBSTR(TO_CHAR(SYSDATE),0,8)
+	</select>
+	<!-- 포인트 변경 -->
+	<update id="updatePoint">
+		UPDATE TBL_USER
+		SET 
+		USER_POINT =USER_POINT + (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation})
+		WHERE USER_ID =#{user_id}
+		AND 0 &lt;=(USER_POINT + (SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation}))
+	</update>
+	<!-- 포인트 출납기록 !포인트 변경(updatePoint)후 반드시 트렌젝션으로 작업 -->
+	<insert id="writePointTBook">
+		INSERT INTO TBL_POINTTBOOK(POINTLOG_NUM, USER_ID, POINTLOG_TIME, POINTLOG_VARIATION, POINTLOG_CONTENT) 
+		VALUES(SEQ_POINTLOG_NUM.NEXTVAL,#{user_id},sysdate,(SELECT POINT FROM TBL_POINT WHERE POINT_SITUATION = #{point_situation}),#{pointlog_content})
+	</insert>
+	
+	<!-- 메뉴 읽어오기 -->
+	<select id="getMainMenuList" resultType="com.pjt.domain.ys.MainCategoryVO">
+		SELECT * FROM TBL_MAIN_CATEGORY
+	</select>
+	<!-- 성별 목록 읽어오기 -->
+	<select id="getGenderList" resultType="com.pjt.domain.ys.GenderVO">
+		SELECT * 
+		FROM TBL_GENDER
+	</select>
+	<!-- 지역 목록 읽어오기 -->
+	<select id="getLocList" resultType="com.pjt.domain.ys.LocVO">
+		SELECT * 
+		FROM TBL_LOC
+	</select>
+	<!-- 종교 목록 읽어오기 -->
+	<select id="getReligionList" resultType="com.pjt.domain.ys.ReligionVO">
+		SELECT * 
+		FROM TBL_RELIGION
+	</select>
+	
+	<!-- Intro-최근 등록된 만남 -->
+	<select id="LatestRegistration" resultType="com.pjt.domain.ys.MeetFlapper">
+		SELECT me.MEET_NUM,	us.USER_PHOTO writer_photo
+		FROM
+		TBL_MEET me,
+		TBL_USER us
+		WHERE
+		me.MEET_WRITER = us.USER_ID AND
+		MEET_STATE = 'w' AND
+		us.USER_GENDER = #{gender} AND
+		ROWNUM &lt; 4
+		ORDER BY
+		MEET_REGIST_DATE DESC
+	</select>
+	<!-- Intro-최근 성사된 만남 -->
+	<select id="LatestAccomplishments" resultType="com.pjt.domain.ys.MeetFlapper">
+		SELECT me.MEET_NUM,	us1.USER_PHOTO writer_photo, us2.USER_PHOTO partner_photo
+		FROM
+		TBL_MEET me,
+		TBL_USER us1,
+		TBL_USER us2
+		WHERE
+		me.MEET_WRITER = us1.USER_ID AND
+		me.MEET_PARTNER = us2.USER_ID AND
+		MEET_STATE = 'i' AND
+		ROWNUM &lt; 4
+		ORDER BY
+		MEET_REGIST_DATE DESC
+	</select>
+	<!-- Intro-오늘 만들어진 만남 수 -->
+	<select id="TodayCreate" resultType="int">
+		SELECT count(*)
+		FROM TBL_MEET
+		WHERE MEET_STATE = 'w' AND
+		SUBSTR(TO_CHAR(MEET_REGIST_DATE),0,8) = SUBSTR(TO_CHAR(SYSDATE),0,8)
+	</select>
+	<!-- Intro-전체 만남 수 -->
+	<select id="TotalMeet" resultType="int">
+		SELECT count(*)
+		FROM TBL_MEET
+	</select>
+
+	<!-- Intro-회원 수 -->
+	<select id="Members" resultType="int">
+		SELECT COUNT(USER_ID) 
+		FROM TBL_USER
+	</select>
+
+<!-- TRASH -->
+
+<!-- 메인페이지 -->
+<!-- 	<select id="LatestRegistration" resultType="com.pjt.domain.ys.MeetFlapper"> -->
+<!-- 		SELECT me.MEET_NUM, -->
+<!-- 		mc.MAIN_CATEGORY_NAME, -->
+<!-- 		me.MEET_NAME, -->
+<!-- 		lo.LOC_NAME, -->
+<!-- 		us.USER_NAME, -->
+<!-- 		ge.GENDER_NAME -->
+<!-- 		FROM -->
+<!-- 		TBL_MEET me, -->
+<!-- 		TBL_MAIN_CATEGORY mc, -->
+<!-- 		TBL_LOC lo, -->
+<!-- 		TBL_USER us, -->
+<!-- 		TBL_GENDER ge -->
+<!-- 		WHERE -->
+<!-- 		me.MEET_CATEGORY = mc.MAIN_CATEGORY_NUM	AND -->
+<!-- 		me.MEET_ADDR = lo.LOC_NUM AND -->
+<!-- 		me.MEET_WRITER = us.USER_ID AND -->
+<!-- 		me.MEET_TARGET_GENDER = ge.GENDER_NUM AND -->
+<!-- 		MEET_STATE = 'w' AND -->
+<!-- 		ROWNUM -->
+<!-- 		&lt; 10 -->
+<!-- 		ORDER BY -->
+<!-- 		MEET_REGIST_DATE DESC -->
+<!-- 	</select> -->
+<!-- 	<select id="LatestRegistrationMen" resultType="com.pjt.domain.ys.MeetFlapper"> -->
+<!-- 		SELECT me.MEET_NUM, -->
+<!-- 		us.USER_PHOTO writer_photo -->
+<!-- 		FROM -->
+<!-- 		TBL_MEET me, -->
+<!-- 		TBL_USER us -->
+<!-- 		WHERE -->
+<!-- 		me.MEET_WRITER = us.USER_ID AND -->
+<!-- 		MEET_STATE = 'w' AND -->
+<!-- 		us.USER_GENDER = 2 AND -->
+<!-- 		ROWNUM &lt; 4 -->
+<!-- 		ORDER BY -->
+<!-- 		MEET_REGIST_DATE DESC -->
+<!-- 	</select> -->
+<!-- 	<select id="getSubmenuList" resultType="com.pjt.domain.ys.CategoryVO"> -->
+<!-- 		SELECT * FROM TBL_MEET_CATEGORY -->
+<!-- 	</select> -->
+<!-- 	<select id="Long-termMeeting" resultType="com.pjt.domain.ys.LongMeet"> -->
+<!-- 		SELECT M.MEET_NUM, M.MEET_NAME, U1.USER_NAME writer,U2.USER_NAME partner, EXTRACT(DAY FROM (SYSDATE-M.MEET_REGIST_DATE)) d_diff -->
+<!-- 		FROM TBL_MEET M,TBL_USER U1 ,TBL_USER U2 -->
+<!-- 		WHERE -->
+<!-- 		M.MEET_WRITER = U1.USER_ID AND -->
+<!-- 		M.MEET_PARTNER = U2.USER_ID AND -->
+<!-- 		M.MEET_STATE= 'i' AND -->
+<!-- 		ROWNUM &lt; 10 -->
+<!-- 		ORDER BY  -->
+<!-- 		MEET_REGIST_DATE ASC -->
+<!-- 	</select> -->
+</mapper>

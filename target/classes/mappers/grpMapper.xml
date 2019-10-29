@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mappers.grpMapper">
+
+	<select id="selectOne" resultType="com.pjt.domain.kth.GrpMeetVO">
+		select * from tbl_meet
+		where meet_num = #{meet_num}
+	</select>
+	
+	<insert id="insert">
+		insert into tbl_meet (meet_num, meet_category, meet_name, meet_addr, meet_writer)
+		values (seq_meet_num.nextval, #{meet_category}, #{meet_name}, #{meet_addr}, #{meet_writer})
+	</insert>
+	
+	<update id="update">
+		update tbl_meet set
+			meet_name = #{meet_name},
+			meet_addr = #{meet_addr}
+		where meet_num = #{meet_num}
+	</update>
+	
+	<delete id="delete">
+		delete from tbl_meet
+		where meet_num = #{meet_num}			
+	</delete>
+	
+	<select id="listAll" resultType="com.pjt.domain.kth.GrpMeetVO">
+		select * from tbl_meet
+		order by meet_num desc
+	</select>
+	
+
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mappers.listMapper">
+	<select id="selectList" resultType="com.pjt.domain.kth.ListDTO">
+		select meet_num, meet_name, meet_peoplenum, meet_writer, meet_regist_date,
+			 meet_state, state_name, loc_name, user_photo
+		from TBL_MEET m, TBL_STATE_CATEGORY c, tbl_loc l, tbl_user u
+		where m.MEET_STATE = c.STATE_NUM
+		and m.meet_addr = l.loc_num
+		and m.meet_writer = u.user_id
+		order by meet_num desc
+	</select>
+	
+	<select id="selectListOne" resultType="com.pjt.domain.kth.ListDTO">
+		select meet_num, meet_name, meet_peoplenum, meet_writer, meet_regist_date,
+			 meet_state, state_name, loc_name
+		from TBL_MEET m, TBL_STATE_CATEGORY c, tbl_loc l
+		where m.MEET_STATE = c.STATE_NUM
+		and m.meet_addr = l.loc_num and meet_num = #{meet_num}
+	</select>	
+	
+	<update id="updateState">
+		update tbl_meet set
+			meet_state = #{meet_state}
+		where meet_num = #{meet_num}
+	</update>
+	
+	<select id="selectPage" resultType="com.pjt.domain.kth.ListDTO">
+		select * 
+	    from( select rownum rnum, a.*
+	          from( select m.meet_num, m.meet_name, m.meet_peoplenum, m.meet_writer, m.meet_regist_date,
+	                       m.meet_state, c.state_name, l.loc_name, u.user_photo
+	                from TBL_MEET m, TBL_STATE_CATEGORY c, tbl_loc l, tbl_user u
+	                where m.MEET_STATE = c.STATE_NUM
+	                and m.meet_addr = l.loc_num
+	                and m.meet_writer = u.user_id
+	                and m.meet_state = 'w'
+	                order by m.meet_num desc) a)
+	    where #{startRow} &lt;= rnum and rnum &lt;= #{endRow}
+	</select>
+	
+	<select id="selectPageAll" resultType="com.pjt.domain.kth.ListDTO">
+		select * 
+	    from( select rownum rnum, a.*
+	          from( select m.meet_num, m.meet_name, m.meet_peoplenum, m.meet_writer, m.meet_regist_date,
+	                       m.meet_state, c.state_name, l.loc_name, u.user_photo
+	                from TBL_MEET m, TBL_STATE_CATEGORY c, tbl_loc l, tbl_user u
+	                where m.MEET_STATE = c.STATE_NUM
+	                and m.meet_addr = l.loc_num
+	                and m.meet_writer = u.user_id
+	                and (m.meet_state = 'w' or m.meet_state = 'i')
+	                order by m.meet_num desc) a)
+	    where #{startRow} &lt;= rnum and rnum &lt;= #{endRow}
+	</select>
+	
+<!-- 	<select id="selectCri" resultType="ListDTO"> -->
+<!-- 		select *  -->
+<!-- 		from( select rownum rnum, a.* -->
+<!-- 		from( select meet_num, meet_name, meet_peoplenum, meet_writer, meet_regist_date, -->
+<!-- 			 meet_state, state_name, loc_name, user_photo -->
+<!-- 		from TBL_MEET m, TBL_STATE_CATEGORY c, tbl_loc l, tbl_user u -->
+<!-- 		where m.MEET_STATE = c.STATE_VAL -->
+<!-- 		and m.meet_addr = l.loc_num -->
+<!-- 		and m.meet_writer = u.user_id -->
+<!-- 		order by meet_num desc) a) -->
+<!-- 		where #{startRow} &lt;= rnum and rnum &lt;= #{endRow} -->
+<!-- 	</select> -->
+	
+	<select id="countPaging" resultType="int">
+		select count(*) from tbl_meet
+		where meet_state = 'w' or meet_state = 'i'
+	</select>
+	
+</mapper>
